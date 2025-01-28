@@ -19,7 +19,7 @@ class App(tk.Tk):
 
         #organizing the frames on the grid
         for i in range(3):
-            self.columnconfigure(i, weight=1, minsize=75)
+            self.columnconfigure(i, weight=1, minsize=70)
             if i != 2:
                 self.rowconfigure(i, weight=1, minsize=50)
         #build the window
@@ -41,13 +41,27 @@ class App(tk.Tk):
         scaleFrame = tk.Frame(self, padx=5, pady=5)
         scaleFrame.grid(row=0,column=2)
 
+        #creating the scrollbars
+        br = tk.Scale(scaleFrame, from_=-100, to=100, orient=tk.HORIZONTAL, label= "Brightness", 
+                      command= self.brightness, length=200)
+        br.pack(expand=True, fill="x")
+        con = tk.Scale(scaleFrame, from_=-100, to=100, orient=tk.HORIZONTAL, label= "Contrast", 
+                       command= self.contrast, length=200)
+        con.pack(expand=True, fill="x")
+        con.set(-33)
+
+        
+        #Creating the button save and giving it a command and placement
+        save = tk.Button(self,text= "SAVE",command= lambda: self.save())
+        save.grid(row=1, column=2)
+
         #container for the image's canvases
         self.canvases = [self.img1, self.img2]
 
         #adding the images on the canvases
         for i in range(2):
             for j in range(2):
-                fig = Figure(figsize=(5,5))
+                fig = Figure(figsize=(4,4))
                 a = fig.add_subplot(111)
                 if i==0:
                     #this one for the pictures
@@ -66,16 +80,6 @@ class App(tk.Tk):
                 self.canvases.append(canvas)
             #removing the images used
             self.canvases.pop(0)
-        
-        #Creating the button save and giving it a command and placement
-        save = tk.Button(self,text= "SAVE",command= lambda: self.save())
-        save.grid(row=1, column=2)
-
-        #creating the scrollbars
-        br = tk.Scale(scaleFrame, from_=-100, to=100, orient=tk.HORIZONTAL, label= "Brightness", command= self.brightness)
-        br.pack()
-        con = tk.Scale(scaleFrame, from_=-100, to=100, orient=tk.HORIZONTAL, label= "Contrast", command= self.contrast)
-        con.pack()
 
     #whenever we increase or decrease the brightness
     def brightness(self, var):
@@ -84,10 +88,15 @@ class App(tk.Tk):
         self.update(modified) #updating with modified value
 
         
-
+    #command function to increase or decrease the brightness
     def contrast(self, var):
-        self.con = ((int(var)-(-100))/(100-(-100)))*3 #scaling from -100 to 100 to be 0 to 3
-        modified = cv2.convertScaleAbs(self.img2, alpha= self.con, beta= self.bri)
+        if int(var) == -33 and self.bri == 0:
+            self.con = ((int(var)-(-100))/(100-(-100)))*3
+            modified = self.img1
+        else:
+            self.con = ((int(var)-(-100))/(100-(-100)))*3 #scaling from -100 to 100 to be 0 to 3
+            print(self.con)
+            modified = cv2.convertScaleAbs(self.img2, alpha= self.con, beta= self.bri)
         self.update(modified)
 
     #updates the image with the modified image
