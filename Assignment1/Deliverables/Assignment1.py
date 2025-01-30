@@ -12,6 +12,7 @@ class App(tk.Tk):
         tk.Tk.wm_title(self, "Assignment 1")
         self.defaultbg = self.cget('bg')
 
+    #change 'Assignment1/dop.bmp' to the path to your image. This program only works with bmp files
         self.img1 = cv2.imread(r'Assignment1/dog.bmp', cv2.IMREAD_GRAYSCALE)
         self.img2 = self.img1.copy()
 
