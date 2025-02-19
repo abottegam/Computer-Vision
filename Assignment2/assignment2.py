@@ -1,55 +1,79 @@
 import cv2
 import numpy as np
+import tkinter as tk
+from PIL import Image
+from PIL import ImageTk
 
-def show_image(image_path):
-    # Load the image
-    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    print(image.dtype)
+class App(tk.Tk):
+    def __init__(self, *args, **kwargs):
+        
+        tk.Tk.__init__(self, *args, **kwargs)
+        tk.Tk.wm_title(self, "Assignment 2")
+        self.defaultbg = self.cget('bg')
+
+    #change 'Assignment1/dop.bmp' to the path to your image. This program only works with bmp files
+        self.img1 = cv2.imread(r'Assignment2/dog.bmp', cv2.IMREAD_GRAYSCALE)
+        self.length, self.width = self.img1.shape[:2]
+
+        #organizing the frames on the grid
+        # for i in range(7):
+        #     self.columnconfigure(i, weight=1, minsize=70)
+        #     if i != 2:
+        #         self.rowconfigure(i, weight=1, minsize=50)
+        #build the window
+        self.buildWindow()
+
+
+    #function to create the histogram and image to embed in window
+    def buildWindow(self):
+        #container for the images frames
+        frames = []
+
+        #frames for histograms and pictures
+        for i in range(4):
+            fr = tk.Frame(self, padx=5, pady=5)
+            fr.grid(row=i%2,column=i//2, pady=5, padx=5)
+            frames.append(fr)
+        
+        filters = [self.boxNoCV(k=3), self.boxNoCV(k=5), self.box(k=3), self.box(k=5)]
+
+
+        for i in range(len(filters)):
+            img= Image.fromarray(filters[i])
+            img= ImageTk.PhotoImage(img)
+            label = tk.Label(frames[i], image = img)
+            label.image = img
+            label.pack()
+
+
+    def boxNoCV(self, k):
+        mask = np.ones((k,k),np.float32)/k**2
+
+        pad = k // 2
+        padded_image = np.zeros((self.length + 2 * pad, self.width + 2 * pad))
+        padded_image[pad:self.length + pad, pad:self.width + pad] = self.img1
+
+        blurred = np.zeros((self.length,self.width), np.uint8)
+
+        for row in range(self.length):
+            for col in range(self.width):
+                region = padded_image[row:row + k, col:col + k]
+                value = np.sum(region * mask)
+                blurred[row, col] = value
+        return blurred
     
-    # Check if image was successfully loaded
-    if image is None:
-        print("Error: Could not read the image.")
-        return
-    
-    # Display the image
-    #cv2.imshow('Image', image)
-    boxNoCV(image)
+    def box(self, k):
+        mask = np.ones((k,k),np.float32)/k**2
 
-    
-    # Wait for a key press and close the window
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()
+        pad = k // 2
+        padded_image = np.zeros((self.length + 2 * pad, self.width + 2 * pad))
+        padded_image[pad:self.length + pad, pad:self.width + pad] = self.img1
 
-def boxNoCV(image):
-    mask3 = np.ones((3,3),np.float32)/9
+        blurred = np.zeros((self.length,self.width), np.uint8)
+        cv2.boxFilter(self.img1, -1, (k,k), blurred)
 
-    rows = image.shape[0]
-    cols = image.shape[1]
+        return blurred
 
-    blurred = np.zeros((rows,cols), np.uint8)
-
-    #grab first 3 rows and first 3 columns
-
-    for row in range(rows-2):
-        for col in range(cols-2):
-            region = image[row:row + 3, col:col + 3]
-            value = 0
-
-            value = np.sum(region * mask3)
-            blurred[row, col] = value
-    
-    cv2.imshow('Image', blurred)
-    #print(blurred)
-
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-    mask5 = np.ones((5,5),np.float32)/25
-
-
-
-
-# Example usage
 if __name__ == "__main__":
-    image_path = "Assignment2/dog.bmp"  # Replace with the path to your image
-    show_image(image_path)
+    app = App()
+    app.mainloop()
